@@ -4,7 +4,8 @@ format:
   html:
     theme: flatly
     toc: true
-jupyter: python3
+jupyter: 
+  kernel: kedro312
 execute:
   echo: FALSE
   cache: FALSE

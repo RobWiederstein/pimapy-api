@@ -764,6 +764,10 @@ def create_train_test_splits(
     y_test  : pd.Series
     """
     X = df.drop(columns=[outcome_col])
+
+    if "flag_imp" in X.columns:
+        X = X.drop(columns=["flag_imp"])
+        
     y = df[outcome_col]
 
     stratify_vals = y if stratify else None
