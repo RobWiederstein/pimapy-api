@@ -10,8 +10,11 @@ app = FastAPI(title="Pima Diabetes Predictor")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8001"],  # your front-end origin
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_origins=[
+        "http://localhost:8001",               # local dev
+        "https://robwiederstein.github.io"     # your GitHub Pages root
+    ],
+    allow_methods=["*"],                       # GET, POST, OPTIONS, etc.
     allow_headers=["*"],
 )
 
