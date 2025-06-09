@@ -22,6 +22,9 @@ data/**
 !data/01_raw/reviews.csv
 !data/01_raw/shuttles.xlsx
 
+# allow our trained LR model to be committed
+!data/06_model/tuned_lr_model.pkl
+
 # ignore kedro-viz metadata
 .viz
 
