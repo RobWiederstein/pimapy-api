@@ -1,0 +1,17 @@
+{
+  "folders": [
+	{
+		"path": "."
+	}
+],
+  "settings": {
+    "[yaml]": {
+      "editor.folding": true,
+      "editor.foldingStrategy": "auto",
+      "editor.foldMarkers": {
+        "start": "^\\s*#region\\b",
+        "end":   "^\\s*#endregion\\b"
+      }
+    }
+  }
+}

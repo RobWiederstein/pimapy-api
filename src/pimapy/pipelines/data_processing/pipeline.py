@@ -1,0 +1,151 @@
+from kedro.pipeline import Pipeline, node, pipeline
+from .nodes import (
+load_pima_data, 
+rename_columns, 
+calculate_feature_statistics, 
+plot_zscore_boxplots,
+replace_zeroes_with_na,
+replace_outliers_with_na,
+impute_missing_values,
+plot_density_by_imputation,
+plot_density_by_outcome,
+plot_pca_by_outcome,
+compute_t_test,
+plot_correlogram,
+create_train_test_splits
+)
+
+def create_pipeline(**kwargs) -> Pipeline:
+    return pipeline(
+        [
+            node(
+                func=load_pima_data,
+                inputs=None,
+                outputs="pima_raw",
+                name="load_pima_data_node",
+            ),
+            node(
+                func=rename_columns,
+                inputs=["pima_raw", "params:column_mapping"],
+                outputs="pima_raw_rename",
+                name="abbreviate_columns_node",
+            ),
+            node(
+                func=calculate_feature_statistics,
+                inputs="pima_raw_rename",
+                outputs="pima_raw_summary",
+                name="calculate_feature_statistics_node",
+            ),
+            node(
+                func=plot_zscore_boxplots,
+                inputs="pima_raw_rename",
+                outputs="pima_raw_zscore_plot",
+                name="plot_pima_raw_outliers_node",
+            ),
+            node(
+                func=replace_zeroes_with_na,
+                inputs=["pima_raw_rename", "params:cols_with_zeros"],
+                outputs="pima_na",
+                name="replace_zeroes_with_na",
+            ),
+            node(
+                func=calculate_feature_statistics,
+                inputs="pima_na",
+                outputs="pima_na_summary",
+                name="calculate_feature_statistics_on_pima_na",
+            ),
+            node(
+                func=plot_zscore_boxplots,
+                inputs="pima_na",
+                outputs="pima_na_zscore_plot",
+                name="plot_pima_na_outliers_node",
+            ),
+            node(
+                func=replace_outliers_with_na,
+                inputs=["pima_na", "params:outlier_threshold"],
+                outputs="pima_no_outliers",
+                name="replace_outliers_with_na_node",
+            ),
+            node(
+                func=calculate_feature_statistics,
+                inputs="pima_no_outliers",
+                outputs="pima_no_outliers_summary",
+                name="calculate_feature_statistics_on_pima_no_outliers",
+            ),
+            node(
+                func=plot_zscore_boxplots,
+                inputs="pima_no_outliers",
+                outputs="pima_no_outliers_zscore_plot",
+                name="plot_pima_no_outliers_node",
+            ),
+            node(
+                func=impute_missing_values,
+                inputs=[
+                    "pima_no_outliers",
+                    "params:imputer_max_iter",
+                    "params:imputer_random_state"
+                ],
+                outputs="pima_imputed",
+                name="impute_missing_values_node",
+            ),
+            node(
+                func=calculate_feature_statistics,
+                inputs="pima_imputed",
+                outputs="pima_imputed_summary",
+                name="calculate_feature_statistics_on_pima_imputed",
+            ),
+            node(
+                func=plot_zscore_boxplots,
+                inputs="pima_imputed",
+                outputs="pima_imputed_zscore_plot",
+                name="plot_pima_imputed_zscore_node",
+            ),
+            node(
+                func=plot_density_by_imputation,
+                inputs="pima_imputed",
+                outputs="pima_imputed_density_plot",
+                name="plot_pima_imputed_density_node",
+            ),
+            node(
+                func=plot_density_by_outcome,
+                inputs="pima_imputed",
+                outputs="pima_imputed_density_outcome_plot",
+                name="plot_pima_imputed_density_outcome_node",
+            ),
+            node(
+                func=plot_pca_by_outcome,
+                inputs="pima_imputed",            
+                outputs="pima_imputed_pca_outcome_plot",
+                name="plot_imputed_pca_by_outcome_node",
+            ),
+            node(
+                func=compute_t_test,
+                inputs="pima_imputed",
+                outputs="pima_imputed_t_test_results",
+                name="pima_imputed_compute_t_test_node",
+            ),            
+            node(
+                func=plot_correlogram,
+                inputs="pima_imputed",
+                outputs="pima_imputed_correlogram_plot",
+                name="plot_pima_imputed_correlogram_node",
+            ),
+            node(
+                func=create_train_test_splits,
+                inputs=[
+                    "pima_imputed",                      # final cleaned DataFrame
+                    "params:data_split.outcome_col",     # e.g. "outcome"
+                    "params:data_split.test_size",       # e.g. 0.2
+                    "params:data_split.random_state",    # e.g. 42
+                    "params:data_split.stratify"         # e.g. True
+                ],
+                outputs=[
+                    "X_train",
+                    "X_test",
+                    "y_train",
+                    "y_test"
+                ],
+                name="create_train_test_splits_node",
+            ),
+        ]
+    )

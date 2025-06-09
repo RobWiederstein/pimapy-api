@@ -1,0 +1,233 @@
+#region explore
+pima_raw_summary:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/pima_raw_summary.csv
+
+pima_raw_zscore_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_raw_zscore_plot.pkl
+
+
+pima_na_summary:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/pima_na_summary.csv
+
+pima_na_zscore_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_na_zscore_plot.pkl
+
+pima_no_outliers:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/pima_no_outliers.csv
+
+pima_no_outliers_summary:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/pima_no_outliers_summary.csv
+
+pima_no_outliers_zscore_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_no_outliers_zscore_plot.pkl
+
+pima_imputed:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/pima_imputed.csv
+
+pima_imputed_summary:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/pima_imputed_summary.csv
+
+pima_imputed_zscore_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_imputed_zscore_plot.pkl
+
+pima_imputed_density_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_imputed_density_plot.pkl
+
+pima_imputed_density_outcome_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_imputed_density_outcome_plot.pkl
+
+pima_imputed_pca_outcome_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_imputed_pca_outcome_plot.pkl
+
+pima_imputed_t_test_results:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/pima_imputed_t_test_results.csv
+
+pima_imputed_correlogram_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/pima_imputed_correlogram_plot.pkl
+#endregion
+
+#region split
+X_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_train.csv
+  load_args:
+    index_col: False
+  save_args:
+    index: False
+
+X_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_test.csv
+  save_args:
+    index: False
+
+y_train:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_train.csv
+  load_args:
+    index_col: False
+  save_args:
+    index: False
+
+y_test:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_test.csv
+  save_args:
+    index: False
+# endregion
+
+#region logistic regression
+tuned_lr_model:
+  type: pickle.PickleDataset
+  filepath: data/06_model/tuned_lr_model.pkl
+
+y_test_for_eval:
+  type: pandas.CSVDataset
+  filepath: data/07_model_output/lr/y_test_for_eval.csv
+
+y_pred_for_eval:
+  type: pandas.CSVDataset
+  filepath: data/07_model_output/lr/y_pred_for_eval.csv
+
+y_proba_for_eval:
+  type: pandas.CSVDataset
+  filepath: data/07_model_output/lr/y_proba_for_eval.csv
+
+best_params:
+  type: kedro_datasets.json.JSONDataset
+  filepath: data/07_model_output/lr/best_params.json
+
+run_id:
+  type: kedro_datasets.text.TextDataset
+  filepath: data/07_model_output/lr/run_id.txt
+
+lr_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/lr_metrics.csv
+
+lr_cm_fig:
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/lr_confusion_matrix.svg
+  save_args:
+    format: svg
+
+# endregion
+
+#region random forest
+tuned_rf_model:
+  type: pickle.PickleDataset
+  filepath: data/06_model/tuned_rf_model.pkl
+
+y_test_for_rf:
+  type: MemoryDataset
+
+y_pred_for_rf:
+  type: MemoryDataset
+
+y_proba_for_rf:
+  type: MemoryDataset
+
+best_params_rf:
+  type: MemoryDataset
+
+run_id_rf:
+  type: MemoryDataset
+
+rf_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/rf_metrics.csv
+
+rf_confusion_matrix_plot:
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/rf_confusion_matrix.svg
+  save_args:
+    format: svg
+
+rf_feature_importance_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/rf_feature_importance.pkl
+
+#endregion
+
+#region xgboost
+tuned_xgb_model:
+  type: pickle.PickleDataset
+  filepath: data/06_model/tuned_xgb_model.pkl
+
+y_test_xgb:
+  type: MemoryDataset
+
+y_pred_xgb:
+  type: MemoryDataset
+
+y_proba_xgb:
+  type: MemoryDataset
+
+xgb_best_params:
+  type: MemoryDataset
+
+xgb_run_id:
+  type: MemoryDataset
+
+xgb_metrics:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/xgb_metrics.csv
+
+xgb_confusion_matrix:
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/xgb_confusion_matrix.svg
+  save_args:
+    format: svg
+
+xgb_feature_importance:
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/xgb_feature_importance.svg
+  save_args:
+    format: svg
+
+#endregion
+
+#region model comparison
+models_roc_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/models_roc_plot.pkl
+
+model_cv_stats:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/tbl/model_cv_stats.csv
+
+model_cv_plot:
+  type: pickle.PickleDataset
+  filepath: data/08_reporting/plt/model_cv_plot.pkl
+
+docs_input_qmd:
+  type: kedro_datasets.text.TextDataset
+  filepath: docs/index.qmd
+
+  #endregion
+
+#region model deployment
+new_data:
+  type: pandas.CSVDataset
+  filepath: data/01_in/new_data.csv
+
+lr_predictions:
+  type: pandas.CSVDataset
+  filepath: data/09_deployment/lr_predictions.csv
+
+#endregion

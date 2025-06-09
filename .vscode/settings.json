@@ -1,0 +1,12 @@
+{
+    "folder-color.pathColors": [
+        {
+            "folderPath": "pimapy/pipelines/data_processing/",
+            "color": "foldercolorizer.color_0066cc"
+        },
+        {
+            "folderPath": "pimapy/pipelines/data_processing/nodes.py/",
+            "color": "foldercolorizer.color_00cc00"
+        }
+    ]
+}

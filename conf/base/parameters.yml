@@ -1,0 +1,72 @@
+column_mapping:
+  pregnancies:     pregnant
+  glucose:         glucose
+  blood_pressure:  blood_pr
+  skin_thickness:  skin_thi
+  insulin:         insulin
+  bmi:             bmi
+  diabetes_pedigree: dbts_pdgr
+  age:             age
+  outcome:         outcome
+
+cols_with_zeros:
+  - glucose
+  - blood_pr
+  - skin_thi
+  - insulin
+  - bmi
+
+outlier_threshold: 3.0
+
+imputer_max_iter: 10
+imputer_random_state: 0
+
+data_split:
+  outcome_col: "outcome"
+  test_size: 0.2
+  random_state: 42
+  stratify: True
+
+model_comparison:
+  lr_model_name: "Logistic Regression"
+  rf_model_name: "Random Forest"
+  xgb_model_name: "XGBoost"
+
+lr_tuning:
+  param_grid:
+    clf__penalty: ["l1", "l2"]
+    clf__C: [0.001, 0.01, 0.1, 1, 10, 100]
+    clf__solver: ["liblinear", "saga"]
+    clf__class_weight: [null, "balanced"]
+  cv: 5
+  scoring: "roc_auc"
+  random_state: 42
+  stratify: true
+
+random_forest:
+  tuning:
+    param_grid:
+      clf__n_estimators:      [50, 100, 200]
+      clf__max_depth:         [None, 5, 10, 20]
+      clf__min_samples_split: [2, 5, 10]
+      clf__min_samples_leaf:  [1, 2, 4]
+      clf__max_features:      ["sqrt", "log2", 0.5]
+    cv: 5
+    scoring: "roc_auc"
+    random_state: 42
+    stratify: True
+
+xgb:
+  tuning_params:
+    param_grid:
+      clf__n_estimators: [50, 100, 200]
+      clf__max_depth: [3, 5, 7]
+      clf__learning_rate: [0.01, 0.1, 0.2]
+      clf__subsample: [0.6, 0.8, 1.0]
+      clf__colsample_bytree: [0.6, 0.8, 1.0]
+      # You can compute scale_pos_weight in a notebook and hard‐code it here,
+      # or supply a formula later. For now, we’ll leave it at 1:
+      clf__scale_pos_weight: [1]
+    cv: 5
+    scoring: "roc_auc"
+    random_state: 42

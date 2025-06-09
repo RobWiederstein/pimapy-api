@@ -1,0 +1,207 @@
+---
+title: "Pima Indians Diabetes Report"
+format:
+  html:
+    theme: flatly
+    toc: true
+jupyter: python3
+execute:
+  echo: FALSE
+  cache: FALSE
+
+---
+
+```{python}
+#| label: setup
+#| include: false
+import pandas as pd
+import pickle
+from pimapy.helpers import format_table
+from IPython.display import Image, SVG, display
+```
+
+# Data Processing
+
+## Raw
+
+### Summary
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/pima_raw_summary.csv")
+format_table(tbl, decimals=1)
+```
+
+### Outliers
+
+```{python}
+with open("../data/08_reporting/plt/pima_raw_zscore_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+## Intermediate
+
+Zeroes were set to NA in variables where inappropriate, i.e. subjects having a blood pressure of zero.
+
+### Summary
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/pima_na_summary.csv")
+format_table(tbl, decimals=1)
+```
+
+### Outliers
+
+```{python}
+with open("../data/08_reporting/plt/pima_raw_zscore_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+## Outliers Excluded
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/pima_no_outliers_summary.csv")
+format_table(tbl, decimals=1)
+```
+
+```{python}
+with open("../data/08_reporting/plt/pima_no_outliers_zscore_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+## Imputed
+
+### Summary
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/pima_imputed_summary.csv")
+format_table(tbl, decimals=1)
+```
+
+### Outliers
+
+```{python}
+with open("../data/08_reporting/plt/pima_imputed_zscore_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+### Univariate Distributions
+
+#### By Imputation Flag
+
+```{python}
+with open("../data/08_reporting/plt/pima_imputed_density_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+#### By Outcome
+
+```{python}
+with open("../data/08_reporting/plt/pima_imputed_density_outcome_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+### PCA
+
+```{python}
+with open("../data/08_reporting/plt/pima_imputed_pca_outcome_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+### T-test
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/pima_imputed_t_test_results.csv")
+tbl
+```
+
+
+### Correlogram
+
+```{python}
+with open("../data/08_reporting/plt/pima_imputed_correlogram_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+# Models
+
+## Logistic Regression
+
+```{python}
+img_path = "../data/08_reporting/plt/lr_confusion_matrix.svg"
+display(SVG(filename=img_path))
+```
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/lr_metrics.csv")
+format_table(tbl, decimals=3)
+```
+
+## Random Forrest
+
+```{python}
+with open("../data/08_reporting/plt/rf_feature_importance.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/rf_metrics.csv")
+format_table(tbl, decimals=3)
+```
+
+```{python}
+img_path = "../data/08_reporting/plt/rf_confusion_matrix.svg"
+display(SVG(filename=img_path))
+```
+
+## XGBoost
+
+```{python}
+img_path = "../data/08_reporting/plt/xgb_feature_importance.svg"
+display(SVG(filename=img_path))
+```
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/xgb_metrics.csv")
+format_table(tbl, decimals=3)
+```
+
+```{python}
+img_path = "../data/08_reporting/plt/xgb_confusion_matrix.svg"
+display(SVG(filename=img_path))
+```
+
+# Model Comparison
+
+## ROC Curves
+
+```{python}
+#| fig-width: 6
+#| fig-height: 6
+with open("../data/08_reporting/plt/models_roc_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
+## Model Performance
+
+```{python}
+tbl = pd.read_csv("../data/08_reporting/tbl/model_cv_stats.csv")
+format_table(tbl, decimals=3)
+```
+
+## Model Metrics
+```{python}
+with open("../data/08_reporting/plt/model_cv_plot.pkl","rb") as f:
+    plot = pickle.load(f)
+plot
+```
+
