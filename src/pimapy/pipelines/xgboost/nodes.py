@@ -59,8 +59,6 @@ def train_tuned_xgb(
                 XGBClassifier(
                     random_state=tuning_params["random_state"],
                     eval_metric="logloss",
-                    use_label_encoder=False,
-                    # you can pass additional defaults here if needed
                 ),
             )
         ]
@@ -101,57 +99,6 @@ def train_tuned_xgb(
         best_params,
         run_id,
     )
-
-# def compute_xgb_metrics(
-#     y_test: pd.Series,
-#     y_pred: pd.Series,
-#     y_proba: pd.Series,
-#     tuning_params: Dict[str, Any],
-#     best_params: Dict[str, Any],
-#     run_id: str
-# ) -> pd.DataFrame:
-#     """
-#     Given true labels, predicted labels, and predicted probabilities from XGBoost,
-#     compute a suite of metrics. Returns a one‐row DataFrame containing:
-#       - run_id, Model="XGBoost"
-#       - accuracy, roc_auc, precision, recall, f1_score, matthews_cc, bal_accuracy
-#       - best_params (stringified)
-#       - cv_folds, scoring, random_state, stratify (if provided)
-#     """
-#     # 1) Compute standard classification metrics
-#     acc = accuracy_score(y_test, y_pred)
-#     roc_auc = roc_auc_score(y_test, y_proba)
-#     prec = precision_score(y_test, y_pred, zero_division=0)
-#     rec = recall_score(y_test, y_pred, zero_division=0)
-#     f1 = f1_score(y_test, y_pred, zero_division=0)
-#     mcc = matthews_corrcoef(y_test, y_pred)
-#     bal_acc = balanced_accuracy_score(y_test, y_pred)
-
-#     # 2) Extract tuning parameters for record
-#     cv_folds = tuning_params["cv"]
-#     scoring = tuning_params["scoring"]
-#     random_state = tuning_params["random_state"]
-#     stratify_flag = tuning_params.get("stratify", True)
-
-#     # 3) Build a single‐row dictionary
-#     record = {
-#         "run_id":       run_id,
-#         "Model":        "XGBoost",
-#         "accuracy":     acc,
-#         "roc_auc":      roc_auc,
-#         "precision":    prec,
-#         "recall":       rec,
-#         "f1_score":     f1,
-#         "matthews_cc":  mcc,
-#         "bal_accuracy": bal_acc,
-#         "best_params":  str(best_params),
-#         "cv_folds":     cv_folds,
-#         "scoring":      scoring,
-#         "random_state": random_state,
-#         "stratify":     stratify_flag
-#     }
-
-#     return pd.DataFrame([record])
 
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -169,7 +169,17 @@ def merge_cv_stats(
     xgb_stats: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Take the two single‐model CV‐summary DataFrames (each with columns
-    [Model, Metric, Value, Error]) and concatenate them into one long table.
+    Take the three single‐model CV‐summary DataFrames (each with columns
+    [Model, Metric, Value, Error]), concatenate them into one table,
+    then within each Metric group sort by Value descending.
     """
-    return pd.concat([lr_stats, rf_stats, xgb_stats], ignore_index=True)
+    
+    merged = pd.concat([lr_stats, rf_stats, xgb_stats], ignore_index=True)
+
+    merged = (
+        merged
+        .sort_values(['Metric', 'Value'], ascending=[True, False])
+        .reset_index(drop=True)
+    )
+
+    return merged
