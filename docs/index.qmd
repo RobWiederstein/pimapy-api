@@ -187,9 +187,8 @@ display(SVG(filename=img_path))
 ```{python}
 #| fig-width: 6
 #| fig-height: 6
-with open("../data/08_reporting/plt/models_roc_plot.pkl","rb") as f:
-    plot = pickle.load(f)
-plot
+img_path = "../data/08_reporting/plt/models_roc_plot.svg"
+display(SVG(filename=img_path))
 ```
 
 ## Model Performance
@@ -201,8 +200,7 @@ format_table(tbl, decimals=3)
 
 ## Model Metrics
 ```{python}
-with open("../data/08_reporting/plt/model_cv_plot.pkl","rb") as f:
-    plot = pickle.load(f)
-plot
+img_path = "../data/08_reporting/plt/model_cv_plot.svg"
+display(SVG(filename=img_path))
 ```
 

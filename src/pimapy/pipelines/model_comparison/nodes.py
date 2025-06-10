@@ -72,8 +72,11 @@ def plot_multi_models_roc(
             color="Model"
         )
     )
-
-    return p
+    # 2) convert it into a Matplotlib Figure
+    fig = p.draw()
+    # 3) close the ggplot’s internal figure so no double–render
+    plt.close(fig)
+    return fig
 
 
 def compare_model_cv(
@@ -155,7 +158,10 @@ def plot_model_cv(
         + theme_bw()
         + theme(axis_text_x=element_text(rotation=15, hjust=1))
     )
-    return p
+    fig = p.draw()
+    # 3) close the ggplot’s internal figure so no double–render
+    plt.close(fig)
+    return fig
 
 def merge_cv_stats(
     lr_stats: pd.DataFrame,

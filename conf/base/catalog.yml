@@ -204,16 +204,20 @@ xgb_feature_importance:
 
 #region model comparison
 models_roc_plot:
-  type: pickle.PickleDataset
-  filepath: data/08_reporting/plt/models_roc_plot.pkl
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/models_roc_plot.svg
+  save_args:
+    format: svg
 
 model_cv_stats:
   type: pandas.CSVDataset
   filepath: data/08_reporting/tbl/model_cv_stats.csv
 
 model_cv_plot:
-  type: pickle.PickleDataset
-  filepath: data/08_reporting/plt/model_cv_plot.pkl
+  type: kedro_datasets.matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/plt/model_cv_plot.svg
+  save_args:
+    format: svg
 
 docs_input_qmd:
   type: kedro_datasets.text.TextDataset
