@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # 1) load the saved model at startup
-MODEL_PATH = os.getenv("MODEL_PATH", "data/06_model/tuned_lr_model.pkl")
+MODEL_PATH = os.getenv("MODEL_PATH", "data/06_model/tuned_rf_model.pkl")
 try:
     model = load(MODEL_PATH)
 except Exception as e:

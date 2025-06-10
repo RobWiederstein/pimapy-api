@@ -24,6 +24,7 @@ data/**
 
 # allow our trained LR model to be committed
 !data/06_model/tuned_lr_model.pkl
+!data/06_model/tuned_rf_model.pkl
 
 # ignore kedro-viz metadata
 .viz

@@ -23,9 +23,9 @@ def create_pipeline(**kwargs) -> KedroPipeline:
         [
             node(
                 func=score_model,
-                inputs=["new_data", "tuned_lr_model"],
-                outputs="lr_predictions",
-                name="lr_scoring_node",
+                inputs=["new_data", "tuned_rf_model"],
+                outputs="rf_predictions",
+                name="rf_scoring_node",
             )
         ]
     )
