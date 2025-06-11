@@ -12,6 +12,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8001",
+        "https://pimapy-app.onrender.com", # Added your Streamlit app's URL
         "https://robwiederstein.github.io"
     ],
     allow_methods=["*"],
@@ -28,16 +29,18 @@ except FileNotFoundError:
 except Exception as e:
     raise RuntimeError(f"An error occurred while loading the model: {e}")
 
-# Define the input schema using Pydantic for data validation.
+# --- THIS IS THE FIX ---
+# Define the input schema using Pydantic. These field names MUST EXACTLY MATCH
+# the feature names the scikit-learn model was trained on.
 class ModelInput(BaseModel):
-    Pregnancies: int
-    Glucose: int
-    BloodPressure: int
-    SkinThickness: int
-    Insulin: int
-    BMI: float
-    DiabetesPedigreeFunction: float
-    Age: int
+    pregnant: int
+    glucose: int
+    blood_pr: int
+    skin_thi: int
+    insulin: int
+    bmi: float
+    dbts_pdgr: float
+    age: int
 
 # Health check endpoint
 @app.get("/health")
@@ -52,21 +55,16 @@ def predict(patient_data: ModelInput):
     Receives patient data, makes a prediction using the loaded model,
     and returns the prediction and its probability.
     """
+    # Convert the incoming Pydantic object to a pandas DataFrame
     df = pd.DataFrame([patient_data.model_dump()])
 
     try:
-        # --- THIS IS THE FINAL FIX ---
-        # Instead of getting feature names from the last step (the classifier),
-        # we get them from the first step (the scaler/preprocessor). This is
-        # the most robust way to ensure the column order is correct.
-        # model.steps[0] gets the first (name, estimator) tuple.
-        # model.steps[0][1] gets the estimator object itself (e.g., StandardScaler).
+        # Get feature names from the first step of the pipeline.
         first_step_estimator = model.steps[0][1]
         feature_names = first_step_estimator.feature_names_in_
         
         # Reorder the DataFrame to match the order the model was trained on.
         df = df[feature_names]
-        # ---------------------------
 
         # Get raw model outputs
         probability = model.predict_proba(df)[:, 1].item()
