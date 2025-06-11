@@ -26,6 +26,8 @@ data/**
 !data/06_model/tuned_lr_model.pkl
 !data/06_model/tuned_rf_model.pkl
 
+!data/07_model_output/production_model.pkl
+
 # ignore kedro-viz metadata
 .viz
 
