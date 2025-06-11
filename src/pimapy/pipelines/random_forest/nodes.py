@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -7,8 +7,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 
@@ -18,132 +16,62 @@ from plotnine import (
     ggplot, aes, geom_col, coord_flip,
     labs, theme_bw, geom_segment, geom_point
 )
-def train_tuned_rf(
+
+def tune_random_forest_candidate(
     X_train: pd.DataFrame,
     y_train: pd.Series,
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
-    tuning_params: Dict[str, Any],
-) -> Tuple[
-    Pipeline,        # the fitted RF pipeline
-    pd.Series,       # unchanged y_test
-    pd.Series,       # y_pred on X_test
-    pd.Series,       # y_proba on X_test (positive‐class probability)
-    Dict[str, Any],  # best_params from GridSearchCV
-    str              # run_id timestamp (YYYYMMDDHHMM)
-]:
+    tuning_params: Dict[str, Any]
+) -> Dict[str, Any]:
     """
-    Perform CV‐based tuning for a Random Forest classifier, refit on the full training set,
-    evaluate on the test set, and return:
-      - best_model: a fitted Pipeline containing the RF
-      - y_test (unchanged)
-      - y_pred: predicted class labels for X_test
-      - y_proba: predicted probabilities for X_test (positive class)
-      - best_params: the actual hyperparameters chosen by GridSearchCV
-      - run_id: timestamp string to the minute
+    Performs CV-based tuning for a Random Forest classifier on the TRAINING DATA ONLY.
 
-    tuning_params should contain:
-      - "param_grid": the RF parameter grid
-      - "cv": number of folds or a cross‐validation splitter
-      - "scoring": scoring metric (e.g. "roc_auc")
-      - "random_state": integer seed for reproducibility
+    Returns a dict containing:
+      - model_name
+      - best_cv_score
+      - model_object   (the full GridSearchCV)
+      - best_params
+      - cv_scores      (list of CV fold scores for the best setting)
     """
-    # Generate a timestamp-based run_id (YYYYMMDDHHMM)
-    now = datetime.now()
-    run_id = now.strftime("%Y%m%d%H%M")
+    # 1) Build the RF pipeline
+    pipe = Pipeline([
+        (
+            "clf",
+            RandomForestClassifier(
+                random_state=tuning_params["random_state"],
+                class_weight="balanced"
+            ),
+        )
+    ])
 
-    # 1) Build a simple RF pipeline (no scaling needed for RF)
-    pipe = Pipeline(
-        [
-            (
-                "clf",
-                RandomForestClassifier(
-                    random_state=tuning_params["random_state"],
-                    class_weight="balanced"  # mirror class‐weight tuning
-                ),
-            )
-        ]
-    )
-
-    # 2) Extract hyperparameter tuning settings
-    param_grid = tuning_params["param_grid"]   # e.g. rf_param_grid from notebook
-    cv = tuning_params["cv"]
-    scoring = tuning_params["scoring"]
-
-    # 3) Set up and run GridSearchCV
+    # 2) Run GridSearchCV
     grid_search = GridSearchCV(
         estimator=pipe,
-        param_grid=param_grid,
-        cv=cv,
-        scoring=scoring,
+        param_grid=tuning_params["param_grid"],
+        cv=tuning_params["cv"],
+        scoring=tuning_params["scoring"],
         n_jobs=-1,
-        verbose=0,
+        verbose=0
     )
-    # .ravel() ensures y_train is 1D
     grid_search.fit(X_train, y_train.values.ravel())
 
-    best_model = grid_search.best_estimator_
-    best_params = grid_search.best_params_
-
-    # 4) Predict on the test set
-    y_pred = best_model.predict(X_test)
-    y_proba = best_model.predict_proba(X_test)[:, 1]
-
-    return (
-        best_model,
-        y_test,
-        pd.Series(y_pred, index=y_test.index),
-        pd.Series(y_proba, index=y_test.index),
-        best_params,
-        run_id,
+    # 3) Extract per-fold test scores at the best index
+    best_idx = grid_search.best_index_
+    results  = grid_search.cv_results_
+    split_keys = sorted(
+        [k for k in results.keys() 
+         if k.startswith("split") and k.endswith("_test_score")],
+        key=lambda s: int(s.split("split")[1].split("_")[0])
     )
+    cv_scores = [results[k][best_idx] for k in split_keys]
 
-# def compute_rf_metrics(
-#     y_test: pd.Series,
-#     y_pred: pd.Series,
-#     y_proba: pd.Series,
-#     tuning_params: Dict[str, Any],
-#     best_params: Dict[str, Any],
-#     run_id: str
-# ) -> pd.DataFrame:
-#     """
-#     Given true/predicted labels & probabilities, compute a suite of RF metrics.
-#     Returns a one‐row DataFrame containing:
-#       - run_id, Model="Random Forest"
-#       - accuracy, roc_auc, precision, recall, f1, mcc, bal_accuracy
-#       - best_params (stringified)
-#       - cv_folds, scoring, random_state, stratify_flag
-#     """
-#     acc = accuracy_score(y_test, y_pred)
-#     roc_auc = roc_auc_score(y_test, y_proba)
-#     prec = precision_score(y_test, y_pred, zero_division=0)
-#     rec = recall_score(y_test, y_pred, zero_division=0)
-#     f1 = f1_score(y_test, y_pred, zero_division=0)
-#     mcc = matthews_corrcoef(y_test, y_pred)
-#     bal_acc = balanced_accuracy_score(y_test, y_pred)
-
-#     cv_folds = tuning_params["cv"]
-#     scoring = tuning_params["scoring"]
-#     random_state = tuning_params["random_state"]
-#     stratify_flag = tuning_params.get("stratify", True)
-
-#     record = {
-#         "run_id":       run_id,
-#         "Model":        "Random Forest",
-#         "accuracy":     acc,
-#         "roc_auc":      roc_auc,
-#         "precision":    prec,
-#         "recall":       rec,
-#         "f1_score":     f1,
-#         "matthews_cc":  mcc,
-#         "bal_accuracy": bal_acc,
-#         "best_params":  str(best_params),
-#         "cv_folds":     cv_folds,
-#         "scoring":      scoring,
-#         "random_state": random_state,
-#         "stratify":     stratify_flag
-#     }
-#     return pd.DataFrame([record])
+    # 4) Return everything in one dict
+    return {
+        "model_name":    "Random Forest",
+        "best_cv_score": grid_search.best_score_,
+        "model_object":  grid_search,          # full GridSearchCV
+        "best_params":   grid_search.best_params_,
+        "cv_scores":     cv_scores
+    }
 
 def plot_rf_feature_importance(
     rf_pipeline: Pipeline,

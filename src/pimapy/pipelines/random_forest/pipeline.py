@@ -1,64 +1,27 @@
-from kedro.pipeline import Pipeline, node, pipeline
+# In src/pimapy/pipelines/random_forest/pipeline.py
+from kedro.pipeline import Pipeline, node
 
-from .nodes import (
-    train_tuned_rf,
-    plot_rf_feature_importance,
-)
-
-# nodes used across multiple pipelines
-from pimapy.nodes.common import plot_confusion_matrix, compute_rf_metrics
+# Note the import of the NEW candidate function
+from .nodes import tune_random_forest_candidate
 
 def create_pipeline(**kwargs) -> Pipeline:
+    """
+    Creates the modular pipeline for tuning the Random Forest model candidate.
+    This pipeline only uses the training data.
+    """
     return Pipeline(
         [
-            # Node 1: Train & tune a Random Forest
             node(
-                func=train_tuned_rf,
+                func=tune_random_forest_candidate,
                 inputs=[
-                    "X_train",                    # persisted training features
-                    "y_train",                    # persisted training labels
-                    "X_test",                     # persisted test features
-                    "y_test",                     # persisted test labels
-                    "params:random_forest.tuning"  # e.g. param_grid, cv, scoring, random_state
+                    "X_train",
+                    "y_train",
+                    "params:random_forest.tuning"
                 ],
-                outputs=[
-                    "tuned_rf_model",     # PickleDataset pointing to data/06_models/tuned_rf_model.pkl
-                    "y_test_for_rf",      # MemoryDataset (so downstream nodes can use it)
-                    "y_pred_for_rf",      # MemoryDataset
-                    "y_proba_for_rf",     # MemoryDataset
-                    "best_params_rf",     # MemoryDataset
-                    "run_id_rf"           # MemoryDataset
-                ],
-                name="train_tuned_rf_node",
-            ),
-
-            # Node 2: Compute RF metrics (one‐row DataFrame)
-            node(
-                func=compute_rf_metrics,
-                inputs=[
-                    "y_test_for_rf",
-                    "y_pred_for_rf",
-                    "y_proba_for_rf",
-                    "params:random_forest.tuning",
-                    "best_params_rf",
-                    "run_id_rf"
-                ],
-                outputs="rf_metrics",   # pandas.CSVDataset, e.g. data/07_model_validation/rf_metrics.csv
-                name="compute_rf_metrics_node",
-            ),
-
-            # Node 3: Plot the RF confusion matrix
-            node(
-                func=plot_confusion_matrix,
-                inputs=["y_test_for_rf", "y_pred_for_rf", "run_id_rf"],
-                outputs="rf_confusion_matrix_plot",  # MatplotlibDataset or PickleDataset, e.g. data/08_reporting/plt/rf_cm.png
-                name="plot_rf_cm_node",
-            ),
-            node(
-                func=plot_rf_feature_importance,
-                inputs=["tuned_rf_model", "X_train"],
-                outputs="rf_feature_importance_plot",
-                name="plot_rf_feature_importance_node",
-            ),
+                # The single output is a dictionary containing the results
+                # for this candidate model.
+                outputs="rf_candidate",
+                name="tune_rf_candidate_node",
+            )
         ]
     )

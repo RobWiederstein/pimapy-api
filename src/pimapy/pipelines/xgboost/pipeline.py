@@ -1,62 +1,31 @@
-from kedro.pipeline import Pipeline, node, pipeline
+# In src/pimapy/pipelines/xgboost/pipeline.py
+from kedro.pipeline import Pipeline, node
 
-from .nodes import (
-    train_tuned_xgb,
-    plot_xgb_feature_importance
-)
-# nodes used across multiple pipelines
-from pimapy.nodes.common import plot_confusion_matrix, compute_xgb_metrics
+# Note the import of the NEW candidate function.
+# This fixes the NameError because we now import the function we intend to use.
+from .nodes import tune_xgboost_candidate
 
 def create_pipeline(**kwargs) -> Pipeline:
+    """
+    Creates the modular pipeline for tuning the XGBoost model candidate.
+    This pipeline only uses the training data.
+    """
     return Pipeline(
         [
             node(
-                func=train_tuned_xgb,
+                # Use the new, correctly imported function
+                func=tune_xgboost_candidate,
+                # The inputs no longer include the test set
                 inputs=[
-                    "X_train",                 # 1st input
-                    "y_train",                 # 2nd input
-                    "X_test",                  # 3rd input
-                    "y_test",                  # 4th input
-                    "params:xgb.tuning_params" # 5th input: comes from parameters.yml
+                    "X_train",
+                    "y_train",
+                    "params:xgb.tuning_params"
                 ],
-                outputs=[
-                    "tuned_xgb_model",       # 1st output
-                    "y_test_xgb",          # 2nd (unchanged)
-                    "y_pred_xgb",      # 3rd
-                    "y_proba_xgb",     # 4th
-                    "xgb_best_params", # 5th
-                    "xgb_run_id",      # 6th
-                ],
-                name="train_tuned_xgb_node",
-            ),
-            node(
-                func=compute_xgb_metrics,
-                inputs=[
-                    "y_test_xgb",             # pulled from previous node’s outputs
-                    "y_pred_xgb",             # predicted labels
-                    "y_proba_xgb",            # predicted probabilities
-                    "params:xgb.tuning_params",# same tuning params dict
-                    "xgb_best_params",        # best_params from previous node
-                    "xgb_run_id"              # run_id from previous node
-                ],
-                outputs="xgb_metrics",       # single‐row DataFrame of metrics
-                name="compute_xgb_metrics_node",
-            ),
-            node(
-                func=plot_confusion_matrix,
-                inputs=[
-                    "y_pred_xgb",
-                    "y_test_xgb",
-                    "xgb_run_id" 
-                ],
-                outputs="xgb_confusion_matrix",  # a Matplotlib figure
-                name="plot_xgb_confusion_matrix_node",
-            ),
-            node(
-                func=plot_xgb_feature_importance,
-                inputs=["tuned_xgb_model", "X_train", "xgb_run_id"],
-                outputs="xgb_feature_importance",
-                name="plot_xgb_feature_importance_node",
-            ),
+                # The single output is a dictionary containing the results
+                # for this candidate model.
+                outputs="xgb_candidate",
+                name="tune_xgb_candidate_node",
+            )
         ]
     )
+

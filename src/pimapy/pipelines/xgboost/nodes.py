@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any, Dict, Tuple
-
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
@@ -16,89 +15,62 @@ from sklearn.metrics import (
     balanced_accuracy_score,
 )
 
-def train_tuned_xgb(
+def tune_xgboost_candidate(
     X_train: pd.DataFrame,
     y_train: pd.Series,
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
     tuning_params: Dict[str, Any],
-) -> Tuple[
-    Pipeline,        # the fitted XGB pipeline
-    pd.Series,       # unchanged y_test
-    pd.Series,       # y_pred on X_test
-    pd.Series,       # y_proba on X_test (positive‐class probability)
-    Dict[str, Any],  # best_params from GridSearchCV
-    str              # run_id timestamp (YYYYMMDDHHMM)
-]:
+) -> Dict[str, Any]:
     """
-    Perform CV‐based tuning for an XGBoost classifier, refit on the full training set,
-    evaluate on the test set, and return:
-      - best_model: a fitted Pipeline containing the XGBClassifier
-      - y_test (unchanged)
-      - y_pred: predicted class labels for X_test
-      - y_proba: predicted probabilities for X_test (positive class)
-      - best_params: the actual hyperparameters chosen by GridSearchCV
-      - run_id: timestamp string to the minute
+    Performs CV-based tuning for an XGBoost classifier on the TRAINING DATA ONLY.
 
-    `tuning_params` should contain:
-      - "param_grid": the XGB parameter grid
-      - "cv": number of folds or a cross‐validation splitter
-      - "scoring": scoring metric (e.g. "roc_auc")
-      - "random_state": integer seed for reproducibility
+    Returns a dict containing:
+      - model_name
+      - best_cv_score
+      - model_object   (the full GridSearchCV)
+      - best_params
+      - cv_scores      (list of CV fold scores for the best setting)
     """
-    # Generate a timestamp‐based run_id (YYYYMMDDHHMM)
-    now = datetime.now()
-    run_id = now.strftime("%Y%m%d%H%M")
-
-    # 1) Build a simple XGB pipeline (no scaling if your features are already numeric;
-    #    XGBoost is tree‐based, so scaling is not strictly required)
-    xgb_pipe = Pipeline(
-        [
-            (
-                "clf",
-                XGBClassifier(
-                    random_state=tuning_params["random_state"],
-                    eval_metric="logloss",
-                ),
+    # 1) Build XGB pipeline
+    xgb_pipe = Pipeline([
+        (
+            "clf",
+            XGBClassifier(
+                random_state=tuning_params["random_state"],
+                eval_metric="logloss"
             )
-        ]
-    )
+        )
+    ])
 
-    # 2) Extract hyperparameter tuning settings
-    param_grid = tuning_params["param_grid"]   # e.g., xgb_param_grid from notebook
-    cv = tuning_params["cv"]
-    scoring = tuning_params["scoring"]
-
-    # 3) Set up and run GridSearchCV
+    # 2) Run GridSearchCV
     grid_search = GridSearchCV(
         estimator=xgb_pipe,
-        param_grid=param_grid,
-        cv=cv,
-        scoring=scoring,
+        param_grid=tuning_params["param_grid"],
+        cv=tuning_params["cv"],
+        scoring=tuning_params["scoring"],
         n_jobs=-1,
-        verbose=1,
-        refit=True,
+        verbose=0,
+        refit=True
     )
-    # .ravel() ensures y_train is 1D if it's a DataFrame column
     grid_search.fit(X_train, y_train.values.ravel())
 
-    best_model = grid_search.best_estimator_
-    best_params = grid_search.best_params_
-
-    # 4) Predict on the test set
-    y_pred = best_model.predict(X_test)
-    # `predict_proba` returns an array of shape (n_samples, n_classes);
-    # we take the positive‐class probability (index 1)
-    y_proba = best_model.predict_proba(X_test)[:, 1]
-
-    return (
-        best_model,
-        y_test,
-        pd.Series(y_pred, index=y_test.index),
-        pd.Series(y_proba, index=y_test.index),
-        best_params,
-        run_id,
+    # 3) Extract per-fold test scores at the best index
+    best_idx   = grid_search.best_index_
+    results    = grid_search.cv_results_
+    split_keys = sorted(
+        [k for k in results.keys()
+         if k.startswith("split") and k.endswith("_test_score")],
+        key=lambda s: int(s.split("split")[1].split("_")[0])
     )
+    cv_scores = [results[k][best_idx] for k in split_keys]
+
+    # 4) Return the full GridSearchCV plus fold scores
+    return {
+        "model_name":    "XGBoost",
+        "best_cv_score": grid_search.best_score_,
+        "model_object":  grid_search,        # full GridSearchCV
+        "best_params":   grid_search.best_params_,
+        "cv_scores":     cv_scores
+    }
 
 import matplotlib.pyplot as plt
 import seaborn as sns

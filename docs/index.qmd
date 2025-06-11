@@ -131,76 +131,39 @@ with open("../data/08_reporting/plt/pima_imputed_correlogram_plot.pkl","rb") as 
 plot
 ```
 
-# Models
-
-## Logistic Regression
-
-```{python}
-img_path = "../data/08_reporting/plt/lr_confusion_matrix.svg"
-display(SVG(filename=img_path))
-```
-
-```{python}
-tbl = pd.read_csv("../data/08_reporting/tbl/lr_metrics.csv")
-format_table(tbl, decimals=3)
-```
-
-## Random Forrest
-
-```{python}
-with open("../data/08_reporting/plt/rf_feature_importance.pkl","rb") as f:
-    plot = pickle.load(f)
-plot
-```
-
-```{python}
-tbl = pd.read_csv("../data/08_reporting/tbl/rf_metrics.csv")
-format_table(tbl, decimals=3)
-```
-
-```{python}
-img_path = "../data/08_reporting/plt/rf_confusion_matrix.svg"
-display(SVG(filename=img_path))
-```
-
-## XGBoost
-
-```{python}
-img_path = "../data/08_reporting/plt/xgb_feature_importance.svg"
-display(SVG(filename=img_path))
-```
-
-```{python}
-tbl = pd.read_csv("../data/08_reporting/tbl/xgb_metrics.csv")
-format_table(tbl, decimals=3)
-```
-
-```{python}
-img_path = "../data/08_reporting/plt/xgb_confusion_matrix.svg"
-display(SVG(filename=img_path))
-```
-
 # Model Comparison
-
-## ROC Curves
-
-```{python}
-#| fig-width: 6
-#| fig-height: 6
-img_path = "../data/08_reporting/plt/models_roc_plot.svg"
-display(SVG(filename=img_path))
-```
 
 ## Model Performance
 
 ```{python}
-tbl = pd.read_csv("../data/08_reporting/tbl/model_cv_stats.csv")
-format_table(tbl, decimals=3)
+#| label: fig-cv-scores
+#| fig-cap: "Comparison of model performance during cross-validation."
+display(SVG(filename="../data/08_reporting/plt/comparison_cv_scores_plot.svg"))
 ```
 
-## Model Metrics
+## Receiver Operator Curves
+
 ```{python}
-img_path = "../data/08_reporting/plt/model_cv_plot.svg"
-display(SVG(filename=img_path))
+#| label: fig-roc-curves
+#| fig-cap: "Comparison of model performance during cross-validation."
+display(SVG(filename="../data/08_reporting/plt/comparison_roc_plot.svg"))
 ```
 
+# Top Performer
+
+## Logistic Regression
+
+```{python}
+#| label: final-champion-matrix
+tbl = pd.read_csv("../data/08_reporting/tbl/final_champion_metrics.csv")
+format_table(tbl)
+```
+
+
+## Results
+
+```{python}
+#| label: fig-champion-cm
+#| fig-cap: "Confusion Matrix of Test Data."
+display(SVG(filename="../data/08_reporting/plt/final_champion_confusion_matrix.svg"))
+```

@@ -23,7 +23,7 @@ def create_pipeline(**kwargs) -> KedroPipeline:
         [
             node(
                 func=score_model,
-                inputs=["new_data", "tuned_rf_model"],
+                inputs=["new_data", "production_model"],
                 outputs="rf_predictions",
                 name="rf_scoring_node",
             )
