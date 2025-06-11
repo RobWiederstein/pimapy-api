@@ -55,15 +55,18 @@ def predict(patient_data: ModelInput):
     df = pd.DataFrame([patient_data.model_dump()])
 
     try:
-        # --- THIS IS THE FIX ---
-        # Instead of using a hardcoded name like 'classifier', we programmatically
-        # get the final step of the pipeline.
-        # model.steps[-1] gets the last (name, estimator) tuple.
-        # model.steps[-1][1] gets the estimator object itself.
-        final_estimator = model.steps[-1][1]
-        feature_names = final_estimator.feature_names_in_
+        # --- THIS IS THE FINAL FIX ---
+        # Instead of getting feature names from the last step (the classifier),
+        # we get them from the first step (the scaler/preprocessor). This is
+        # the most robust way to ensure the column order is correct.
+        # model.steps[0] gets the first (name, estimator) tuple.
+        # model.steps[0][1] gets the estimator object itself (e.g., StandardScaler).
+        first_step_estimator = model.steps[0][1]
+        feature_names = first_step_estimator.feature_names_in_
+        
+        # Reorder the DataFrame to match the order the model was trained on.
         df = df[feature_names]
-        # ---------------------
+        # ---------------------------
 
         # Get raw model outputs
         probability = model.predict_proba(df)[:, 1].item()
