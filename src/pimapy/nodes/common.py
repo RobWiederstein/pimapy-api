@@ -48,15 +48,20 @@ def select_champion_model(
     # Get the dictionary of the winning model.
     champion_result_dict = candidates[champion_name]
 
-    # Use the .get() method to safely access dictionary keys.
-    champion_model_pipeline = champion_result_dict.get('model_object')
+    # --- THIS IS THE FIX ---
+    # First, get the GridSearchCV object from the dictionary.
+    grid_search_object = champion_result_dict.get('model_object')
+    
+    # Then, extract the actual trained Pipeline from the .best_estimator_ attribute.
+    # This is the object your API needs.
+    champion_model_pipeline = grid_search_object.best_estimator_
+    
+    # Also get the best parameters directly from the GridSearchCV object.
+    best_hyperparameters = grid_search_object.best_params_
     best_cv_score = champion_result_dict.get('best_cv_score', 0.0)
-    best_hyperparameters = champion_result_dict.get('best_params', {}) # Default to an empty dict
+    # -----------------------
 
-    # --- FINAL FIX ---
     # Create the info dictionary for logging/saving.
-    # The key is changed from 'best_hyperparameters' to 'best_params' to match
-    # what the downstream evaluation node expects.
     champion_info = {
         "champion_name": champion_name,
         "best_cv_score": best_cv_score,
